@@ -1,8 +1,14 @@
-from __future__ import absolute_import
-import os
-from celery import Celery
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
+import json
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend_test.settings")
-app = Celery("backend_test")
-app.config_from_object("django.conf:settings", namespace="CELERY")
-app.autodiscover_tasks()
+schedule, created = IntervalSchedule.objects.get_or_create(
+    every=30,
+    period=IntervalSchedule.MINUTES,
+)
+
+PeriodicTask.objects.create(
+    interval=schedule,
+    name="Archive old books",
+    task="app.tasks.archive_books",
+    args=json.dumps([]),
+)
